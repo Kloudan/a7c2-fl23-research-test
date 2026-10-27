@@ -1,0 +1,3 @@
+ExifTool 13.59 by Phil Harvey
+https://downloads.sourceforge.net/project/exiftool/Image-ExifTool-13.59.tar.gz
+Original license retained in LICENSE / exiftool_files.

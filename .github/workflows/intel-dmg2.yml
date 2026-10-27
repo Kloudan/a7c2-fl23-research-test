@@ -10,19 +10,31 @@ jobs:
       - name: Enable Rosetta
         run: softwareupdate --install-rosetta --agree-to-license || true
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          architecture: x64          # 关键：装 x86_64 Python，在 arm64 runner 上走 Rosetta
-
-      - name: Verify architecture
-        run: python -c "import platform; print('arch =', platform.machine())"
-        # 这行必须输出 arch = x86_64；如果输出 arm64 说明没吃到 Rosetta，再排查
-
-      - name: Install deps and build
+      - name: Install x86_64 Python 3.11 (universal2 pkg)
         run: |
-          python -m pip install --no-build-isolation -r desktop-requirements.txt pyinstaller==6.16.0
-          python dev/desktop/build.py
+          curl -fsSL -o /tmp/python.pkg \
+            "https://www.python.org/ftp/python/3.11.11/python-3.11.11-macos11.pkg"
+          sudo installer -pkg /tmp/python.pkg -target /
+
+      - name: HARD CHECK — must be x86_64
+        run: |
+          ARCH=$(arch -x86_64 /usr/local/bin/python3.11 -c "import platform; print(platform.machine())")
+          echo "Python arch = $ARCH"
+          if [ "$ARCH" != "x86_64" ]; then
+            echo "::error::Python is $ARCH, expected x86_64. Rosetta not working."
+            exit 1
+          fi
+
+      - name: Upgrade build tools (fix bdist_wheel)
+        run: arch -x86_64 /usr/local/bin/python3.11 -m pip install --upgrade pip setuptools wheel
+
+      - name: Install deps
+        run: |
+          arch -x86_64 /usr/local/bin/python3.11 -m pip install --no-build-isolation \
+            -r desktop-requirements.txt pyinstaller==6.16.0
+
+      - name: Build DMG
+        run: arch -x86_64 /usr/local/bin/python3.11 dev/desktop/build.py
 
       - uses: actions/upload-artifact@v5
         with:

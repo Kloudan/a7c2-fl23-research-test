@@ -1,4 +1,4 @@
-name: intel-dmg
+name: intel-dmg2
 on:
   workflow_dispatch:
 jobs:

@@ -1,0 +1,30 @@
+name: intel-dmg
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-15          # Apple Silicon runner，基本秒排，不再卡队列
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable Rosetta
+        run: softwareupdate --install-rosetta --agree-to-license
+
+      - name: Install x86_64 Python 3.11 (universal2)
+        run: |
+          curl -fsSL -o /tmp/python.pkg \
+            "https://www.python.org/ftp/python/3.11.11/python-3.11.11-macos11.pkg"
+          sudo installer -pkg /tmp/python.pkg -target /
+          arch -x86_64 /usr/local/bin/python3.11 -c "import platform; print('arch =', platform.machine())"
+          # 上面这行必须输出 arch = x86_64
+
+      - name: Install deps and build
+        run: |
+          arch -x86_64 /usr/local/bin/python3.11 -m pip install --no-build-isolation \
+            -r desktop-requirements.txt pyinstaller==6.16.0
+          arch -x86_64 /usr/local/bin/python3.11 dev/desktop/build.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: A7C2Tools-macOS-x86_64
+          path: dist/*.dmg

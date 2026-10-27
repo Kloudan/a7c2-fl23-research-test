@@ -10,10 +10,10 @@ jobs:
       - name: Enable Rosetta
         run: softwareupdate --install-rosetta --agree-to-license || true
 
-      - name: Install x86_64 Python 3.11 (universal2 pkg)
+      - name: Install x86_64 Python 3.11.9 (universal2 pkg)
         run: |
           curl -fsSL -o /tmp/python.pkg \
-            "https://www.python.org/ftp/python/3.11.11/python-3.11.11-macos11.pkg"
+            "https://www.python.org/ftp/python/3.11.9/python-3.11.9-macos11.pkg"
           sudo installer -pkg /tmp/python.pkg -target /
 
       - name: HARD CHECK — must be x86_64
@@ -25,7 +25,7 @@ jobs:
             exit 1
           fi
 
-      - name: Upgrade build tools (fix bdist_wheel)
+      - name: Upgrade build tools
         run: arch -x86_64 /usr/local/bin/python3.11 -m pip install --upgrade pip setuptools wheel
 
       - name: Install deps
